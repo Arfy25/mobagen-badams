@@ -9,7 +9,8 @@ glm::vec2 MouseInfluenceRule::computeForce(const std::vector<BoidView>& neighbor
   // glm::length(vec) returns the length of a vector
 
   // begin solution
-  if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+  if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+  {
     glm::vec2 a;
     glm::vec2 b;
 
@@ -18,7 +19,7 @@ glm::vec2 MouseInfluenceRule::computeForce(const std::vector<BoidView>& neighbor
 
     glm::vec2 direction = b - a;
     direction = glm::normalize(direction);
-    force = direction * 100.0f; // Needs to be stronger to be noticable
+    force = direction * 100.0f; // Needs to be stronger to be noticeable
   }
   // end solution
 
