@@ -5,8 +5,7 @@
 
 class SeparationRule : public FlockingRule {
 private:
-  float desiredMinimalDistance = 17.25f;
-
+  float desiredMinimalDistance = 10;
 public:
   explicit SeparationRule(float desiredSeparation = 20.f, float weight = 1.f, bool isEnabled = true)
       : FlockingRule(Color::Red, weight, isEnabled), desiredMinimalDistance(desiredSeparation) {}
