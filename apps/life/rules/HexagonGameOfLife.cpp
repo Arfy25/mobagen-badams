@@ -30,62 +30,52 @@ namespace hexagon {
 class Underpopulation : public Condition {
 public:
   bool Test(const AgentContext& context) override {
-    // todo: implement the underpopulation condition
-    // hint: on the hex grid (B2/S34) a live cell is underpopulated below 3 neighbors
-    throw std::logic_error("Underpopulation condition not implemented yet");
+    if (!context.isAlive) return false;
+    return context.aliveNeighbors < 3;
   }
 };
 
 class Overpopulation : public Condition {
 public:
   bool Test(const AgentContext& context) override {
-    // todo: implement the overpopulation condition
-    // hint: on the hex grid (B2/S34) a live cell is overpopulated above 4 neighbors
-    throw std::logic_error("Overpopulation condition not implemented yet");
+    if (!context.isAlive) return false;
+    return context.aliveNeighbors > 4;
   }
 };
 
 class Reproduction : public Condition {
 public:
   bool Test(const AgentContext& context) override {
-    // todo: implement the reproduction condition
-    // hint: on the hex grid (B2/S34) a dead cell is born with exactly 2 neighbors
-    throw std::logic_error("Reproduction condition not implemented yet");
+    if (context.isAlive) return false;
+    return context.aliveNeighbors == 2;
   }
 };
 
 class DieAction : public Action {
 public:
   void Execute(const AgentContext& context) override {
-    // todo: implement the die action
-    // hint:
-    //   use the context.world.SetNext() to set the next state of the cell to dead
-    //   use the context.position to get the current cell's position
-    throw std::logic_error("Die action not implemented yet");
+    context.world.SetNext(context.position, false);
   }
 };
 
 class BornAction : public Action {
 public:
   void Execute(const AgentContext& context) override {
-    // see hints in DieAction
-    throw std::logic_error("Born action not implemented yet");
+    context.world.SetNext(context.position, true);
   }
 };
 
 class StayAliveAction : public Action {
 public:
   void Execute(const AgentContext& context) override {
-    // see hints in DieAction
-    throw std::logic_error("StayAlive action not implemented yet");
+    context.world.SetNext(context.position, true);
   }
 };
 
 class StayDeadAction : public Action {
 public:
   void Execute(const AgentContext& context) override {
-    // see hints in DieAction
-    throw std::logic_error("StayDead action not implemented yet");
+    context.world.SetNext(context.position, false);
   }
 };
 }  // namespace hexagon
@@ -106,7 +96,11 @@ HexagonGameOfLife::HexagonGameOfLife() {
   //   dead->AddAction(std::make_shared<StayDeadAction>());
   // begin solution
 
-  SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "HexagonGameOfLife: transitions and actions for alive and dead states not implemented yet");
+  alive->AddTransition(std::make_shared<Underpopulation>(), dead, {die});
+  alive->AddTransition(std::make_shared<Overpopulation>(), dead, {die});
+  alive->AddAction(std::make_shared<StayAliveAction>());
+  dead->AddTransition(std::make_shared<Reproduction>(), alive,{born});
+  dead->AddAction(std::make_shared<StayDeadAction>());
 
   // end solution
 }
@@ -140,6 +134,24 @@ int HexagonGameOfLife::CountNeighbors(World& world, Point2D point) {
   //   above and two below, shifted by one column depending on the row parity
   //   world.Get() wraps around the borders (toroidal)
   // begin solution
-  throw std::logic_error("CountNeighbors not implemented yet");
+  int neighbors = 0;
+
+  // Left and Right
+  if (world.Get({point.x - 1, point.y})) neighbors++;
+  if (world.Get({point.x + 1, point.y})) neighbors++;
+
+  bool isOddRow = (point.y % 2 != 0);
+  int leftOffset = isOddRow ? 0 : -1;
+  int rightOffset = isOddRow ? 1 : 0;
+
+  // Top Left and Top Right
+  if (world.Get({point.x + leftOffset, point.y - 1})) neighbors++;
+  if (world.Get({point.x + rightOffset, point.y - 1})) neighbors++;
+
+  // Bottom Left and Bottom Right
+  if (world.Get({point.x + leftOffset, point.y + 1})) neighbors++;
+  if (world.Get({point.x + rightOffset, point.y + 1})) neighbors++;
+
+  return neighbors;
   // end solution
 }

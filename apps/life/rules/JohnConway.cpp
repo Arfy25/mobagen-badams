@@ -3,6 +3,8 @@
 #include "../fsm/AgentContext.h"
 #include "../fsm/Condition.h"
 
+#include <iostream>
+#include <ostream>
 #include <SDL3/SDL_log.h>
 
 #include <stdexcept>
@@ -92,6 +94,9 @@ JohnConway::JohnConway() {
   // note: log instead of throw - the constructor runs at app startup and at
   // every fixture load; throwing here would kill the process before it runs.
   alive->AddTransition(std::make_shared<Underpopulation>(), dead, {die});
+  alive->AddTransition(std::make_shared<Overpopulation>(), dead, {die});
+  alive->AddAction(std::make_shared<StayAliveAction>());
+  dead->AddTransition(std::make_shared<Reproduction>(), alive,{born});
   dead->AddAction(std::make_shared<StayDeadAction>());
 
   // end solution
@@ -130,11 +135,10 @@ int JohnConway::CountNeighbors(World& world, Point2D point) {
   int neighbors = 0;
   for (int x = -1; x <= 1; ++x) {
     for (int y = -1; y <= 1; ++y) {
-      if (x == 0 && y == 0) continue;
-      if (world.Get({x, y})) {
-
-        neighbors++;
-      }
+      if (x == 0 && y == 0) { continue; }
+        if (world.Get({point.x + x, point.y + y})) {
+          neighbors++;
+        }
     }
   }
 
