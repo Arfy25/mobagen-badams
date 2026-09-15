@@ -62,6 +62,18 @@ std::vector<Point2D> RecursiveBacktrackerExample::getVisitables(World* w, const 
   //   (0 <= x < w->GetWidth(), 0 <= y < w->GetHeight()) and not visited
   // begin solution
 
+  std::vector<Point2D> visitables = std::vector<Point2D>();
+
+  Point2D upPoint = Point2D(formalPoint.x, formalPoint.y - 1);
+  Point2D rightPoint = Point2D(formalPoint.x + 1, formalPoint.y);
+  Point2D downPoint = Point2D(formalPoint.x, formalPoint.y + 1);
+  Point2D leftPoint = Point2D(formalPoint.x - 1, formalPoint.y);
+
+  if (0 <= upPoint.y && upPoint.y < w->GetHeight()) { visitables.push_back(upPoint); }
+  if (0 <= rightPoint.x && rightPoint.x < w->GetWidth()) { visitables.push_back(rightPoint); }
+  if (0 <= downPoint.y && downPoint.y < w->GetHeight()) { visitables.push_back(downPoint); }
+  if (0 <= leftPoint.x && leftPoint.x < w->GetWidth()) { visitables.push_back(leftPoint); }
+
   // end solution
-  return {};
+  return visitables;
 }
