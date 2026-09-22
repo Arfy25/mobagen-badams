@@ -15,6 +15,7 @@ private:
   std::vector<Point2D> stack;
   std::map<int, std::map<int, bool>> visited;  // naive. not optimal
   std::vector<Point2D> getVisitables(World* w, const Point2D& formalPoint);
+  bool checkIfVisited(Point2D);
 
 public:
   RecursiveBacktrackerExample() = default;
