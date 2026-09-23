@@ -55,59 +55,62 @@ bool RecursiveBacktrackerExample::Step(World* w) {
   //   return true while there is still work (stack not empty after the move)
   // begin solution
 
-    if (stack.empty()) { return false; }
+    if (!stack.empty()) {
 
-    Point2D current = stack.back();
-    Point2D worldCurrent = w->ToWorldCoords(current);
+      Point2D current = stack.back();
+      Point2D worldCurrent = w->ToWorldCoords(current);
 
-    if (visited[current.x][current.y])
-    {
+      if (visited[current.x][current.y])
+      {
         w->SetNodeColor(worldCurrent, Color32(0,0,0,1));
-    }
-    else
-    {
+      }
+      else
+      {
         visited[current.x][current.y] = true;
         w->SetNodeColor(worldCurrent, Color32(0.5,0,0,1));
-    }
+      }
 
-    std::vector<Point2D> visitables = getVisitables(w, current);
+      std::vector<Point2D> visitables = getVisitables(w, current);
 
-    if (visitables.empty()) {
+      if (visitables.empty())
+      {
         w->SetNodeColor(worldCurrent, Color32(0,0,0,1));
         stack.pop_back();
         return !stack.empty();
-    }
+      }
 
-    Point2D newPoint;
-    if (visitables.size() == 1)
-    {
+      Point2D newPoint;
+      if (visitables.size() == 1)
+      {
         newPoint = visitables[0];
-    }
-    else if (visitables.size() > 1)
-    {
+      }
+      else if (visitables.size() > 1)
+      {
         newPoint = visitables[SeededRandom::next() % visitables.size()];
-    }
+      }
 
-    stack.push_back(newPoint);
+      stack.push_back(newPoint);
 
-    if (newPoint.y < current.y)
-    {
+      if (newPoint.y < current.y)
+      {
         w->SetNorth(worldCurrent, false);
-    }
-    else if (newPoint.x > current.x)
-    {
+      }
+      else if (newPoint.x > current.x)
+      {
         w->SetEast(worldCurrent, false);
-    }
-    else if (newPoint.y > current.y)
-    {
+      }
+      else if (newPoint.y > current.y)
+      {
         w->SetSouth(worldCurrent, false);
-    }
-    else if (newPoint.x < current.x)
-    {
+      }
+      else if (newPoint.x < current.x)
+      {
         w->SetWest(worldCurrent, false);
-    }
+      }
 
-    return true;
+      return true;
+
+    }
 
   // end solution
   return false;
@@ -143,10 +146,7 @@ bool inline RecursiveBacktrackerExample::checkIfVisited(Point2D point)
     {
         if (visited[point.x].contains(point.y))
         {
-            if (visited[point.x][point.y] == true)
-            {
-                return true;
-            }
+          return visited[point.x][point.y];
         }
     }
     return false;

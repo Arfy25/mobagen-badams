@@ -14,6 +14,7 @@ private:
   Point2D randomStartPoint(World* world);
   std::vector<Point2D> getVisitables(World* w, const Point2D& p);
   std::vector<Point2D> getVisitedNeighbors(World* w, const Point2D& p);
+  bool checkIfVisited(Point2D);
 
 public:
   HuntAndKillExample() = default;
