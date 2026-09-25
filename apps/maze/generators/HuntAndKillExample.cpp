@@ -90,7 +90,13 @@ Point2D HuntAndKillExample::randomStartPoint(World* world) {
   // Todo: improve this if you want
   for (int y = 0; y < world->GetHeight(); y++)
     for (int x = 0; x < world->GetWidth(); x++)
-      if (!visited[x][y]) return {x, y};
+      if (!visited[x][y])
+      {
+          return {x, y};
+      } else
+      {
+          world->SetNodeColor(world->ToWorldCoords({x,y}), {0,0,0,1});
+      }
   return {INT_MAX, INT_MAX};
 }
 
