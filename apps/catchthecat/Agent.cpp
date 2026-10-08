@@ -21,17 +21,56 @@ std::vector<Point2D> Agent::generatePath(CatWorld* w) {
 
   while (!frontier.empty()) {
     // get the current from frontier
+    Point2D current = frontier.front();
+    frontier.pop();
+
     // remove the current from frontierset
+    frontierSet.erase(current);
+
     // mark current as visited
-    // getVisitableNeightbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
-    // iterate over the neighs:
-    // for every neighbor set the cameFrom
-    // enqueue the neighbors to frontier and frontierset
+    visited[current] = true;
+
+    std::vector<Point2D> neighbors = w->neighbors(current);
+    std::vector<Point2D> validNeighbors;
+
+    // getVisitableNeighbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
+    for (Point2D neighbor : neighbors) {
+      if (w->isValidPosition(neighbor)) {
+        if (!visited[neighbor] && w->getCat() != neighbor && !w->getContent(neighbor) && !frontierSet.contains(neighbor)) {
+
+          cameFrom[neighbor] = current;
+
+          if (w->catWinsOnSpace(neighbor)) {
+            borderExit = neighbor;
+            break;
+          }
+
+          frontier.push(neighbor);
+          frontierSet.emplace(neighbor);
+        }
+      }
+    }
+
     // do this up to find a visitable border and break the loop
+    if (borderExit != Point2D{INT32_MAX, INT32_MAX}) {
+      break;
+    }
   }
 
-  // if the border is not infinity, build the path from border to the cat using the camefrom map
   // if there isnt a reachable border, just return empty vector
+  vector<Point2D> path;
+
+  // if the border is not infinity, build the path from border to the cat using the camefrom map
+  if (borderExit != Point2D{INT32_MAX, INT32_MAX}) {
+    Point2D current = borderExit;
+    path.push_back(current);
+
+    while (cameFrom[current] != w->getCat()) {
+      current = cameFrom[current];
+      path.push_back(current);
+    }
+  }
+
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
-  return vector<Point2D>();
+  return path;
 }
