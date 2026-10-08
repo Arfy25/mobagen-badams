@@ -7,46 +7,58 @@
 
 using namespace std;
 
+struct ComparePointScore {
+  bool operator()(const std::pair<int, Point2D>& a, const std::pair<int, Point2D>& b) const {
+    return a.first > b.first;
+  }
+};
+
 std::vector<Point2D> Agent::generatePath(CatWorld* w) {
+  typedef std::pair<int, Point2D> PointScore;
+
   unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
-  queue<Point2D> frontier;                   // to store next ones to visit
-  unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
+  unordered_map<Point2D, int> score;         // score for the current point
+  std::priority_queue<PointScore, std::vector<PointScore>, ComparePointScore> frontier;   // A priority queue that sorts based on the best score
   unordered_map<Point2D, bool> visited;      // use .at() to get data, if the element dont exist [] will give you wrong results
 
   // bootstrap state
   auto catPos = w->getCat();
-  frontier.push(catPos);
-  frontierSet.insert(catPos);
+  score[catPos] = 0;
+
+  int initialFScore = 0 + heuristic(w, catPos);
+  frontier.push({initialFScore, catPos});
+
   Point2D borderExit = {INT32_MAX, INT32_MAX};  // sentinel: no border found yet
 
   while (!frontier.empty()) {
     // get the current from frontier
-    Point2D current = frontier.front();
+    Point2D current = frontier.top().second;
     frontier.pop();
 
-    // remove the current from frontierset
-    frontierSet.erase(current);
-
     // mark current as visited
+    if (visited[current]) continue;
     visited[current] = true;
 
+    if (w->catWinsOnSpace(current)) {
+      borderExit = current;
+      break;
+    }
+
     std::vector<Point2D> neighbors = w->neighbors(current);
-    std::vector<Point2D> validNeighbors;
 
     // getVisitableNeighbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
     for (Point2D neighbor : neighbors) {
       if (w->isValidPosition(neighbor)) {
-        if (!visited[neighbor] && w->getCat() != neighbor && !w->getContent(neighbor) && !frontierSet.contains(neighbor)) {
+        if (w->getCat() == neighbor || w->getContent(neighbor)) continue;
 
+        int possibleScore = score[current] + 1;
+
+        if (score.find(neighbor) == score.end() || possibleScore < score[neighbor]) {
           cameFrom[neighbor] = current;
+          score[neighbor] = possibleScore;
 
-          if (w->catWinsOnSpace(neighbor)) {
-            borderExit = neighbor;
-            break;
-          }
-
-          frontier.push(neighbor);
-          frontierSet.emplace(neighbor);
+          int fScore = possibleScore + heuristic(w, neighbor);
+          frontier.push({fScore, neighbor});
         }
       }
     }
@@ -73,4 +85,15 @@ std::vector<Point2D> Agent::generatePath(CatWorld* w) {
 
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
   return path;
+}
+
+int Agent::heuristic(CatWorld* w, Point2D p) {
+  int size = w->getWorldSideSize();
+
+  int distLeft = p.x;
+  int distRight = (size - 1) - p.x;
+  int distTop = p.y;
+  int distBottom = (size - 1) - p.y;
+
+  return std::min({distLeft, distRight, distTop, distBottom});
 }
