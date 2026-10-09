@@ -23,6 +23,7 @@ Point2D Cat::FindOpenSpaceNearby(CatWorld* world) {
   {
     if (world->getContent(neighbor)) continue;
 
+    // How many of the neighbor's neighbors are blocked
     for (Point2D neighborNeighbors : world->neighbors(neighbor)) {
       if (world->getContent(neighborNeighbors)) {
         score[neighbor]++;
@@ -35,5 +36,6 @@ Point2D Cat::FindOpenSpaceNearby(CatWorld* world) {
     }
   }
 
+  // Return neighbor with least neighbors blocked
   return lowestScorePoint;
 }
