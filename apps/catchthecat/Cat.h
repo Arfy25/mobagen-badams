@@ -7,6 +7,7 @@ class Cat : public Agent {
 public:
   explicit Cat() : Agent(){};
   Point2D Move(CatWorld*) override;
+  Point2D FindOpenSpaceNearby(CatWorld*);
 };
 
 #endif  // CAT_H

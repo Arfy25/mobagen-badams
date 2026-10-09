@@ -7,13 +7,14 @@
 
 using namespace std;
 
+// Special comparison operator for priority queue
 struct ComparePointScore {
   bool operator()(const std::pair<int, Point2D>& a, const std::pair<int, Point2D>& b) const {
     return a.first > b.first;
   }
 };
 
-std::vector<Point2D> Agent::generatePath(CatWorld* w) {
+std::vector<Point2D> Agent::generatePath(CatWorld* w, Point2D b) {
   typedef std::pair<int, Point2D> PointScore;
 
   unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
@@ -21,24 +22,25 @@ std::vector<Point2D> Agent::generatePath(CatWorld* w) {
   std::priority_queue<PointScore, std::vector<PointScore>, ComparePointScore> frontier;   // A priority queue that sorts based on the best score
   unordered_map<Point2D, bool> visited;      // use .at() to get data, if the element dont exist [] will give you wrong results
 
-  // bootstrap state
+  // Set up inital position and score
   auto catPos = w->getCat();
   score[catPos] = 0;
+  int initialScore = 0 + heuristic(w, catPos);
+  frontier.push({initialScore, catPos});
 
-  int initialFScore = 0 + heuristic(w, catPos);
-  frontier.push({initialFScore, catPos});
-
-  Point2D borderExit = {INT32_MAX, INT32_MAX};  // sentinel: no border found yet
+  Point2D borderExit = {INT32_MAX, INT32_MAX};  // No border found at start
 
   while (!frontier.empty()) {
-    // get the current from frontier
+
+    // Get Current From Frontier
     Point2D current = frontier.top().second;
     frontier.pop();
 
-    // mark current as visited
+    // Make the current point visited
     if (visited[current]) continue;
     visited[current] = true;
 
+    // Set the border exit if the cat can win on current
     if (w->catWinsOnSpace(current)) {
       borderExit = current;
       break;
@@ -46,33 +48,33 @@ std::vector<Point2D> Agent::generatePath(CatWorld* w) {
 
     std::vector<Point2D> neighbors = w->neighbors(current);
 
-    // getVisitableNeighbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
+    // Get the score of neighbors
     for (Point2D neighbor : neighbors) {
       if (w->isValidPosition(neighbor)) {
-        if (w->getCat() == neighbor || w->getContent(neighbor)) continue;
+        if (w->getCat() == neighbor || w->getContent(neighbor) || neighbor == b) continue;
 
-        int possibleScore = score[current] + 1;
+        // Best possible score
+        int currentScore = score[current] + 1;
 
-        if (score.find(neighbor) == score.end() || possibleScore < score[neighbor]) {
+        if (score.find(neighbor) == score.end() || currentScore < score[neighbor]) {
+          // Set the path back
           cameFrom[neighbor] = current;
-          score[neighbor] = possibleScore;
+          score[neighbor] = currentScore;
 
-          int fScore = possibleScore + heuristic(w, neighbor);
-          frontier.push({fScore, neighbor});
+          frontier.push({currentScore + heuristic(w, neighbor), neighbor});
         }
       }
     }
 
-    // do this up to find a visitable border and break the loop
+    // If we found a border exit the loop
     if (borderExit != Point2D{INT32_MAX, INT32_MAX}) {
       break;
     }
   }
 
-  // if there isnt a reachable border, just return empty vector
   vector<Point2D> path;
 
-  // if the border is not infinity, build the path from border to the cat using the camefrom map
+  // If we found a border create the path back
   if (borderExit != Point2D{INT32_MAX, INT32_MAX}) {
     Point2D current = borderExit;
     path.push_back(current);
@@ -83,17 +85,11 @@ std::vector<Point2D> Agent::generatePath(CatWorld* w) {
     }
   }
 
-  // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
   return path;
 }
 
 int Agent::heuristic(CatWorld* w, Point2D p) {
   int size = w->getWorldSideSize();
 
-  int distLeft = p.x;
-  int distRight = (size - 1) - p.x;
-  int distTop = p.y;
-  int distBottom = (size - 1) - p.y;
-
-  return std::min({distLeft, distRight, distTop, distBottom});
+  return min({(size/2 - abs(p.x)), (size/2 - abs(p.y))});
 }
